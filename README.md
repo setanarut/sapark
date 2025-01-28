@@ -18,6 +18,8 @@ This project demonstrates a Sweep and Prune (SAP) collision detection simulation
 1. Clone the repository:
     ```sh
     git clone https://github.com/setanarut/saparche.git
+    ```
+    ```sh
     cd saparche
     ```
 
