@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"image/color"
 	"log"
 	"math"
 	"math/rand/v2"
@@ -23,8 +22,8 @@ const (
 	MaxPossibleObject     = 20000
 	intervalsCap          = MaxPossibleObject * 2
 	IncrementObject       = 500 // Press KeyA
-	ScreenWidth           = 900
-	ScreenHeight          = 800
+	ScreenWidth           = 800
+	ScreenHeight          = 600
 )
 
 const (
@@ -93,9 +92,7 @@ func NewGame() *Game {
 			return &Interval{}
 		},
 	}
-
 	g.SpawnRectangles(InitialRectangleCount)
-
 	return g
 }
 
@@ -234,16 +231,16 @@ func handleScreenBoundaryCollision(rect *Rect, vel *Velocity, screenWidth, scree
 }
 
 func (g *Game) Draw(screen *ebiten.Image) {
-	screen.Fill(color.Gray{30})
 	q := g.filter.Query(&g.world)
 	for q.Next() {
-		r, _, c := q.Get()
+		rect, _, c := q.Get()
 		clr := colornames.Green
 		if c.IsColliding {
 			clr = colornames.Red
 		}
-		vector.DrawFilledRect(screen, float32(r.X), float32(r.Y), float32(r.W), float32(r.H), clr, false)
+		vector.DrawFilledRect(screen, float32(rect.X), float32(rect.Y), float32(rect.W), float32(rect.H), clr, false)
 	}
+
 	ebitenutil.DebugPrintAt(screen, fmt.Sprintf("FPS: %0.2f\nTPS: %0.2f\nEntities: %v",
 		ebiten.ActualFPS(),
 		ebiten.ActualTPS(),
