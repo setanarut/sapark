@@ -19,12 +19,18 @@ import (
 )
 
 const (
-	Objects           = 1000
-	MaxPossibleObject = 10000
-	intervalsCap      = MaxPossibleObject * 2
-	IncrementObject   = 100 // Press KeyA
-	ScreenWidth       = 900
-	ScreenHeight      = 800
+	InitialRectangleCount = 5000
+	MaxPossibleObject     = 20000
+	intervalsCap          = MaxPossibleObject * 2
+	IncrementObject       = 500 // Press KeyA
+	ScreenWidth           = 900
+	ScreenHeight          = 800
+)
+
+const (
+	RectW      = 4
+	RectH      = 4
+	RandomSize = false
 )
 
 type Rect struct {
@@ -88,19 +94,7 @@ func NewGame() *Game {
 		},
 	}
 
-	// Create entities
-	q := g.mapObject.NewBatchQ(Objects)
-
-	for q.Next() {
-		r, v, c := q.Get()
-		r.W = 2 + rand.Float64()*18
-		r.H = 2 + rand.Float64()*18
-		r.X = rand.Float64() * (g.w - r.W)
-		r.Y = rand.Float64() * (g.h - r.H)
-		v.X = -1 + rand.Float64()*2
-		v.Y = -1 + rand.Float64()*2
-		c.IsColliding = false
-	}
+	g.SpawnRectangles(InitialRectangleCount)
 
 	return g
 }
@@ -108,22 +102,7 @@ func NewGame() *Game {
 func (g *Game) Update() error {
 	// Add new entities when 'A' key is pressed
 	if inpututil.IsKeyJustPressed(ebiten.KeyA) {
-		// Create a batch of  new entities
-		q := g.mapObject.NewBatchQ(IncrementObject)
-		for q.Next() {
-			r, v, c := q.Get()
-			// Set entity dimensions
-			r.W = 2 + rand.Float64()*18
-			r.H = 2 + rand.Float64()*18
-			// Random position within screen bounds
-			r.X = rand.Float64() * (g.w - r.W)
-			r.Y = rand.Float64() * (g.h - r.H)
-			// Random velocity between -1 and 1
-			v.X = -1 + rand.Float64()*2
-			v.Y = -1 + rand.Float64()*2
-			// Initialize collision state
-			c.IsColliding = false
-		}
+		g.SpawnRectangles(IncrementObject)
 	}
 
 	// Reset SAP (Sweep and Prune) data structures
@@ -147,9 +126,17 @@ func (g *Game) Update() error {
 		e := q.Entity()
 
 		// Add entity bounds to SAP intervals
-		g.intervals = append(g.intervals,
-			Interval{rect.X, true, e},
-			Interval{rect.X + rect.W, false, e})
+		interval1 := g.pool.Get().(*Interval)
+		interval1.Xaxis = rect.X
+		interval1.IsLeftEdge = true
+		interval1.Entity = e
+		g.intervals = append(g.intervals, *interval1)
+
+		interval2 := g.pool.Get().(*Interval)
+		interval2.Xaxis = rect.X + rect.W
+		interval2.IsLeftEdge = false
+		interval2.Entity = e
+		g.intervals = append(g.intervals, *interval2)
 	}
 
 	// Sort intervals once
@@ -218,8 +205,10 @@ func (g *Game) Update() error {
 				}
 			}
 		}
-	}
 
+		// Interval nesnesini havuza geri gönder
+		g.pool.Put(&interval)
+	}
 	return nil
 }
 
@@ -264,4 +253,23 @@ func (g *Game) Draw(screen *ebiten.Image) {
 
 func (g *Game) Layout(w, h int) (int, int) {
 	return int(g.w), int(g.h)
+}
+
+func (g *Game) SpawnRectangles(n int) {
+	q := g.mapObject.NewBatchQ(n)
+	for q.Next() {
+		r, v, c := q.Get()
+		if RandomSize {
+			r.W = 2 + rand.Float64()*18
+			r.H = 2 + rand.Float64()*18
+		} else {
+			r.W = RectW
+			r.H = RectH
+		}
+		r.X = rand.Float64() * (g.w - r.W)
+		r.Y = rand.Float64() * (g.h - r.H)
+		v.X = -1 + rand.Float64()*2
+		v.Y = -1 + rand.Float64()*2
+		c.IsColliding = false
+	}
 }
