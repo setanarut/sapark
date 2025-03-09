@@ -1,5 +1,8 @@
 # sapark - SAP Collision Detection Simulation
 
+![screenshotsapark](https://github.com/user-attachments/assets/ee8438df-73dd-497c-9bce-1ad1ca0e8ab3)
+
+
 This project demonstrates a Sweep and Prune (SAP) collision detection simulation using the [Ark](https://github.com/mlange-42/ark) ECS package and [Ebitengine](https://github.com/hajimehoshi/ebiten).
 
 ## Installation
