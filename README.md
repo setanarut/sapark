@@ -1,17 +1,6 @@
-# saparche - SAP Collision Detection Simulation
+# sapark - SAP Collision Detection Simulation
 
-This project demonstrates a Sweep and Prune (SAP) collision detection simulation using the Arche ECS package and Ebitengine.
-
-## Features
-
-- **Entity-Component-System (ECS)**: Utilizes the Arche ECS package for efficient entity management.
-- **Collision Detection**: Implements the SAP algorithm for detecting collisions between entities.
-- **Dynamic Entities**: Press 'A' to add more entities to the simulation.
-- **Boundary Handling**: Entities bounce off the screen boundaries.
-
-## Requirements
-
-- Go 1.23.5 or later
+This project demonstrates a Sweep and Prune (SAP) collision detection simulation using the [Ark](https://github.com/mlange-42/ark) ECS package and [Ebitengine](https://github.com/hajimehoshi/ebiten).
 
 ## Installation
 
@@ -20,7 +9,7 @@ This project demonstrates a Sweep and Prune (SAP) collision detection simulation
     git clone https://github.com/setanarut/saparche.git
     ```
     ```sh
-    cd saparche
+    cd sapark
     ```
 
 2. Install dependencies:
@@ -28,9 +17,11 @@ This project demonstrates a Sweep and Prune (SAP) collision detection simulation
     go mod tidy
     ```
 
-## Usage
+## Run
+
+Press 'A' to add more entities to the simulation.
 
 Run the simulation:
 ```sh
-go run main.go
+go run -tags tiny main.go
 ```
