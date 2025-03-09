@@ -12,13 +12,12 @@ import (
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
 	"github.com/hajimehoshi/ebiten/v2/vector"
-	"github.com/mlange-42/arche/ecs"
-	"github.com/mlange-42/arche/generic"
+	"github.com/mlange-42/ark/ecs"
 	"golang.org/x/image/colornames"
 )
 
 const (
-	InitialRectangleCount = 5000
+	InitialRectangleCount = 1024
 	MaxPossibleObject     = 20000
 	intervalsCap          = MaxPossibleObject * 2
 	IncrementObject       = 500 // Press KeyA
@@ -29,7 +28,7 @@ const (
 const (
 	RectW      = 4
 	RectH      = 4
-	RandomSize = false
+	RandomSize = true
 )
 
 type Rect struct {
@@ -46,9 +45,9 @@ type Collision struct {
 
 type Game struct {
 	world        ecs.World
-	filter       generic.Filter3[Rect, Velocity, Collision]
-	mapObject    generic.Map3[Rect, Velocity, Collision]
-	mapCollision generic.Map1[Collision]
+	filter       *ecs.Filter3[Rect, Velocity, Collision]
+	mapObject    ecs.Map3[Rect, Velocity, Collision]
+	mapCollision ecs.Map1[Collision]
 	w, h         float64
 	intervals    []Interval // interval pool for SAP
 	pool         sync.Pool
@@ -77,16 +76,15 @@ func main() {
 }
 
 func NewGame() *Game {
-	g := &Game{
-		w:          float64(ScreenWidth),
-		h:          float64(ScreenHeight),
-		world:      ecs.NewWorld(),
-		filter:     *generic.NewFilter3[Rect, Velocity, Collision](),
-		activeList: make([]ecs.Entity, MaxPossibleObject), // Maximum possible active entities
-		intervals:  make([]Interval, 0, intervalsCap),     // Initial capacity for all intervals
-	}
-	g.mapObject = generic.NewMap3[Rect, Velocity, Collision](&g.world)
-	g.mapCollision = generic.NewMap1[Collision](&g.world)
+	g := &Game{}
+	g.w = float64(ScreenWidth)
+	g.h = float64(ScreenHeight)
+	g.world = ecs.NewWorld(InitialRectangleCount)
+	g.filter = ecs.NewFilter3[Rect, Velocity, Collision](&g.world)
+	g.activeList = make([]ecs.Entity, MaxPossibleObject)
+	g.mapObject = ecs.NewMap3[Rect, Velocity, Collision](&g.world)
+	g.intervals = make([]Interval, 0, intervalsCap)
+	g.mapCollision = ecs.NewMap1[Collision](&g.world)
 	g.pool = sync.Pool{
 		New: func() interface{} {
 			return &Interval{}
@@ -107,10 +105,9 @@ func (g *Game) Update() error {
 	g.activeLen = 0
 
 	// Update positions and build SAP intervals
-	q := g.filter.Query(&g.world)
+	q := g.filter.Query()
 	for q.Next() {
 		rect, vel, coll := q.Get()
-
 		// Apply velocity to position
 		rect.X += vel.X
 		rect.Y += vel.Y
@@ -231,7 +228,7 @@ func handleScreenBoundaryCollision(rect *Rect, vel *Velocity, screenWidth, scree
 }
 
 func (g *Game) Draw(screen *ebiten.Image) {
-	q := g.filter.Query(&g.world)
+	q := g.filter.Query()
 	for q.Next() {
 		rect, _, c := q.Get()
 		clr := colornames.Green
@@ -253,9 +250,7 @@ func (g *Game) Layout(w, h int) (int, int) {
 }
 
 func (g *Game) SpawnRectangles(n int) {
-	q := g.mapObject.NewBatchQ(n)
-	for q.Next() {
-		r, v, c := q.Get()
+	g.mapObject.NewBatchFn(n, func(entity ecs.Entity, r *Rect, v *Velocity, c *Collision) {
 		if RandomSize {
 			r.W = 2 + rand.Float64()*18
 			r.H = 2 + rand.Float64()*18
@@ -268,5 +263,5 @@ func (g *Game) SpawnRectangles(n int) {
 		v.X = -1 + rand.Float64()*2
 		v.Y = -1 + rand.Float64()*2
 		c.IsColliding = false
-	}
+	})
 }
