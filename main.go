@@ -5,7 +5,7 @@ import (
 	"log"
 	"math"
 	"math/rand/v2"
-	"sort"
+	"slices"
 	"sync"
 
 	"github.com/hajimehoshi/ebiten/v2"
@@ -134,8 +134,13 @@ func (g *Game) Update() error {
 	}
 
 	// Sort intervals once
-	sort.Slice(g.intervals, func(i, j int) bool {
-		return g.intervals[i].Xaxis < g.intervals[j].Xaxis
+	slices.SortFunc(g.intervals, func(a, b Interval) int {
+		if a.Xaxis < b.Xaxis {
+			return -1
+		} else if a.Xaxis > b.Xaxis {
+			return 1
+		}
+		return 0
 	})
 
 	// Sweep phase with pre-allocated active list
