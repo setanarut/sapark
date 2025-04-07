@@ -4,7 +4,7 @@ go 1.24.2
 
 require (
 	github.com/hajimehoshi/ebiten/v2 v2.8.7
-	github.com/mlange-42/ark v0.4.0
+	github.com/mlange-42/ark v0.4.1
 	golang.org/x/image v0.26.0
 )
 
