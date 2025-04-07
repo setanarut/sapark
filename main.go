@@ -46,8 +46,8 @@ type Collision struct {
 type Game struct {
 	world        ecs.World
 	filter       *ecs.Filter3[Rect, Velocity, Collision]
-	mapObject    ecs.Map3[Rect, Velocity, Collision]
-	mapCollision ecs.Map1[Collision]
+	mapObject    *ecs.Map3[Rect, Velocity, Collision]
+	mapCollision *ecs.Map1[Collision]
 	w, h         float64
 	intervals    []Interval // interval pool for SAP
 	pool         sync.Pool
@@ -86,7 +86,7 @@ func NewGame() *Game {
 	g.intervals = make([]Interval, 0, intervalsCap)
 	g.mapCollision = ecs.NewMap1[Collision](&g.world)
 	g.pool = sync.Pool{
-		New: func() interface{} {
+		New: func() any {
 			return &Interval{}
 		},
 	}
